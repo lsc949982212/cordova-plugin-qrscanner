@@ -259,14 +259,22 @@ class QRScanner : CDVPlugin, AVCaptureMetadataOutputObjectsDelegate {
             // Request permission before preparing scanner
             AVCaptureDevice.requestAccess(for: AVMediaType.video, completionHandler: { (granted) -> Void in
                 // attempt to prepScanner only after the request returns
-                //self.backgroundThread(delay: 0, completion: {
-                    //if(self.prepScanner(command: command)){
-                        //self.getStatus(command)
-                    //}
-                //})
-                let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: granted)
-                                          commandDelegate!.send(pluginResult, callbackId:command.callbackId)
+                if(granted){
+                    self.backgroundThread(delay: 0, completion: {
+                        if(self.prepScanner(command: command)){
+                            self.getStatus(command)
+                        }
+                    })
+                }else{
+                    let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "refused")
+                    commandDelegate!.send(pluginResult, callbackId:command.callbackId)
+                }
+                
+                
             })
+        }else if(status == AVAuthorizationStatus.restricted ||tatus == AVAuthorizationStatus.denied ){
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "notGrant")
+            commandDelegate!.send(pluginResult, callbackId:command.callbackId)
         } else {
             if(self.prepScanner(command: command)){
                 self.getStatus(command)
